@@ -1,0 +1,22 @@
+:root {
+  font-family: Roboto, sans-serif; /* Global font */
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark; /* Karanlık/Açık mod desteği */
+  color: rgba(25, 25, 25, 0.87); /* Varsayılan metin rengi */
+  background-color: #E3F2FD; /* Genel arka plan rengi */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* Diğer genel stil kuralları buraya eklenebilir */
