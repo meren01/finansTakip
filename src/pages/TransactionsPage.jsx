@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box, TextField, Button, Typography, MenuItem, Paper, List, ListItem, ListItemText
+  Box, TextField, Button, Typography, MenuItem, Paper, List, ListItem, ListItemText,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import api from "../services/api";
 
 export default function TransactionsPage() {
-  // Durum değişkenleri
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [amount, setAmount] = useState("");
@@ -14,7 +14,10 @@ export default function TransactionsPage() {
   const [date, setDate] = useState(new Date().toISOString().slice(0,16));
   const [categoryId, setCategoryId] = useState("");
 
-  // Kategorileri çek
+  // Dialog kontrolü
+  const [openDialog, setOpenDialog] = useState(false);
+  const [currentTransaction, setCurrentTransaction] = useState(null);
+
   const fetchCategories = async () => {
     try {
       const res = await api.get("/categories");
@@ -25,7 +28,6 @@ export default function TransactionsPage() {
     }
   };
 
-  // İşlemleri çek
   const fetchTransactions = async () => {
     try {
       const res = await api.get("/transactions");
@@ -35,25 +37,21 @@ export default function TransactionsPage() {
     }
   };
 
-  // Yeni işlem ekle
   const handleAdd = async () => {
     try {
       await api.post("/transactions", {
         amount: parseFloat(amount),
         isIncome,
         note,
-        date: new Date(date), // Backend uyumlu format
+        date: new Date(date),
         categoryId
       });
-      setAmount("");
-      setNote("");
-      fetchTransactions(); // Listeyi yenile
+      setAmount(""); setNote(""); fetchTransactions();
     } catch (err) {
       console.error("Transaction eklenirken hata:", err);
     }
   };
 
-  // İşlem sil
   const handleDelete = async (id) => {
     try {
       await api.delete(`/transactions/${id}`);
@@ -63,20 +61,28 @@ export default function TransactionsPage() {
     }
   };
 
-  // İşlem güncelle
-  const handleUpdate = async (id) => {
-    try {
-      const updatedAmount = prompt("Yeni tutarı girin:");
-      if (!updatedAmount) return;
+  const handleOpenDialog = (tr) => {
+    setCurrentTransaction({ ...tr });
+    setOpenDialog(true);
+  };
 
-      await api.put(`/transactions/${id}`, {
-        amount: parseFloat(updatedAmount),
-        isIncome,
-        note,
-        date: new Date(date),
-        categoryId
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setCurrentTransaction(null);
+  };
+
+  const handleUpdateDialog = async () => {
+    if (!currentTransaction) return;
+    try {
+      await api.put(`/transactions/${currentTransaction.id}`, {
+        amount: parseFloat(currentTransaction.amount),
+        isIncome: currentTransaction.isIncome,
+        note: currentTransaction.note,
+        date: new Date(currentTransaction.date),
+        categoryId: currentTransaction.categoryId
       });
       fetchTransactions();
+      handleCloseDialog();
     } catch (err) {
       console.error("Güncelleme hatası:", err);
     }
@@ -118,7 +124,7 @@ export default function TransactionsPage() {
           {transactions.map(tr => (
             <ListItem key={tr.id} secondaryAction={
               <>
-                <Button color="primary" onClick={()=>handleUpdate(tr.id)}>Güncelle</Button>
+                <Button color="primary" onClick={()=>handleOpenDialog(tr)}>Güncelle</Button>
                 <Button color="error" onClick={()=>handleDelete(tr.id)}>Sil</Button>
               </>
             }>
@@ -130,6 +136,41 @@ export default function TransactionsPage() {
           ))}
         </List>
       </Paper>
+
+      {/* Güncelleme Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
+        <DialogTitle>İşlem Güncelle</DialogTitle>
+        <DialogContent sx={{ display:"flex", flexDirection:"column", gap:2, mt:1 }}>
+          <TextField
+            label="Tutar"
+            type="number"
+            value={currentTransaction?.amount || ""}
+            onChange={e=>setCurrentTransaction(prev => ({ ...prev, amount: e.target.value }))}
+          />
+          <TextField select label="Kategori" value={currentTransaction?.categoryId || ""} 
+            onChange={e=>setCurrentTransaction(prev => ({ ...prev, categoryId: e.target.value }))}>
+            {categories.map(cat => <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>)}
+          </TextField>
+          <TextField label="Not" value={currentTransaction?.note || ""} 
+            onChange={e=>setCurrentTransaction(prev => ({ ...prev, note: e.target.value }))} />
+          <TextField
+            label="Tarih"
+            type="datetime-local"
+            value={currentTransaction ? currentTransaction.date?.slice(0,16) : ""}
+            onChange={e=>setCurrentTransaction(prev => ({ ...prev, date: e.target.value }))}
+            InputLabelProps={{ shrink:true }}
+          />
+          <TextField select label="Tür" value={currentTransaction?.isIncome || true} 
+            onChange={e=>setCurrentTransaction(prev => ({ ...prev, isIncome: e.target.value==="true" }))}>
+            <MenuItem value={true}>Gelir</MenuItem>
+            <MenuItem value={false}>Gider</MenuItem>
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>İptal</Button>
+          <Button onClick={handleUpdateDialog} variant="contained">Güncelle</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

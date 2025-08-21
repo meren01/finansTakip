@@ -11,7 +11,7 @@ import {
   Container,
 } from "@mui/material";
 
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,12 +23,12 @@ const LoginPage = () => {
 
     try {
       const res = await api.post("/Auth/login", { email, password });
-
-      console.log("Login response:", res.data); // kontrol için
+      console.log("Login response:", res.data);
 
       if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        navigate("/dashboard"); // başarılı login sonrası yönlendirme
+        sessionStorage.setItem("token", res.data.token); // sessionStorage kullan
+        onLogin(); // parent state'i güncelle
+        navigate("/dashboard", { replace: true });
       } else {
         setError("Token alınamadı.");
       }
@@ -79,4 +79,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-

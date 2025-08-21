@@ -10,6 +10,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import CategoriesPage from './pages/CategoriesPage';
 import TransactionsPage from './pages/TransactionsPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const theme = createTheme({
   palette: {
@@ -26,10 +27,10 @@ const theme = createTheme({
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Sayfa yenilenince token varsa login durumunu koru
+  // Sayfa yüklenince token varsa bile sil → her seferinde login sayfası açılsın
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) setIsAuthenticated(true);
+    sessionStorage.removeItem('token');
+    setIsAuthenticated(false);
   }, []);
 
   const handleLogin = () => {
@@ -37,7 +38,7 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     setIsAuthenticated(false);
   };
 
@@ -51,17 +52,34 @@ const App = () => {
             <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
             <Route path="/register" element={<RegisterPage />} />
 
-            {isAuthenticated ? (
-              <>
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/categories" element={<CategoriesPage />} />
-                <Route path="/transactions" element={<TransactionsPage />} />
-                <Route path="/" element={<Navigate to="/dashboard" />} />
-                <Route path="*" element={<Navigate to="/dashboard" />} />
-              </>
-            ) : (
-              <Route path="*" element={<Navigate to="/login" />} />
-            )}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/categories"
+              element={
+                <ProtectedRoute>
+                  <CategoriesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/transactions"
+              element={
+                <ProtectedRoute>
+                  <TransactionsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Default ve bilinmeyen path'ler login sayfasına */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Container>
       </Router>
