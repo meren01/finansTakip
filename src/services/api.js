@@ -9,9 +9,9 @@ const api = axios.create({
   },
 });
 
-// Token varsa otomatik ekle
+// Token varsa otomatik ekle (sessionStorage kullandığın için burayı değiştiriyoruz)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token"); // artık sessionStorage
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

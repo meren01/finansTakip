@@ -14,7 +14,6 @@ export default function TransactionsPage() {
   const [date, setDate] = useState(new Date().toISOString().slice(0,16));
   const [categoryId, setCategoryId] = useState("");
 
-  // Dialog kontrolü
   const [openDialog, setOpenDialog] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState(null);
 
@@ -39,14 +38,15 @@ export default function TransactionsPage() {
 
   const handleAdd = async () => {
     try {
-      await api.post("/transactions", {
+      const res = await api.post("/transactions", {
         amount: parseFloat(amount),
         isIncome,
         note,
         date: new Date(date),
         categoryId
       });
-      setAmount(""); setNote(""); fetchTransactions();
+      setTransactions(prev => [...prev, res.data]);
+      setAmount(""); setNote("");
     } catch (err) {
       console.error("Transaction eklenirken hata:", err);
     }
@@ -55,7 +55,7 @@ export default function TransactionsPage() {
   const handleDelete = async (id) => {
     try {
       await api.delete(`/transactions/${id}`);
-      fetchTransactions();
+      setTransactions(prev => prev.filter(tr => tr.id !== id));
     } catch (err) {
       console.error("Silme hatası:", err);
     }
@@ -74,14 +74,14 @@ export default function TransactionsPage() {
   const handleUpdateDialog = async () => {
     if (!currentTransaction) return;
     try {
-      await api.put(`/transactions/${currentTransaction.id}`, {
+      const res = await api.put(`/transactions/${currentTransaction.id}`, {
         amount: parseFloat(currentTransaction.amount),
         isIncome: currentTransaction.isIncome,
         note: currentTransaction.note,
         date: new Date(currentTransaction.date),
         categoryId: currentTransaction.categoryId
       });
-      fetchTransactions();
+      setTransactions(prev => prev.map(tr => tr.id === currentTransaction.id ? res.data : tr));
       handleCloseDialog();
     } catch (err) {
       console.error("Güncelleme hatası:", err);
@@ -99,19 +99,40 @@ export default function TransactionsPage() {
 
       <Paper sx={{ p:2, mb:3 }}>
         <Box sx={{ display:"flex", flexDirection:"column", gap:2 }}>
-          <TextField label="Tutar" value={amount} onChange={e=>setAmount(e.target.value)} type="number"/>
-          <TextField select label="Kategori" value={categoryId} onChange={e=>setCategoryId(e.target.value)}>
-            {categories.map(cat => <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>)}
+          <TextField
+            label="Tutar"
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
+            type="number"
+          />
+          <TextField
+            select
+            label="Kategori"
+            value={categoryId}
+            onChange={(event) => setCategoryId(event.target.value)}
+          >
+            {categories.map(cat => (
+              <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+            ))}
           </TextField>
-          <TextField label="Not" value={note} onChange={e=>setNote(e.target.value)}/>
+          <TextField
+            label="Not"
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
           <TextField
             label="Tarih"
             type="datetime-local"
             value={date}
-            onChange={e=>setDate(e.target.value)}
+            onChange={(event) => setDate(event.target.value)}
             InputLabelProps={{ shrink:true }}
           />
-          <TextField select label="Tür" value={isIncome} onChange={e=>setIsIncome(e.target.value==="true")}>
+          <TextField
+            select
+            label="Tür"
+            value={isIncome}
+            onChange={(event) => setIsIncome(event.target.value === "true")}
+          >
             <MenuItem value={true}>Gelir</MenuItem>
             <MenuItem value={false}>Gider</MenuItem>
           </TextField>
@@ -137,7 +158,6 @@ export default function TransactionsPage() {
         </List>
       </Paper>
 
-      {/* Güncelleme Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
         <DialogTitle>İşlem Güncelle</DialogTitle>
         <DialogContent sx={{ display:"flex", flexDirection:"column", gap:2, mt:1 }}>
@@ -145,23 +165,36 @@ export default function TransactionsPage() {
             label="Tutar"
             type="number"
             value={currentTransaction?.amount || ""}
-            onChange={e=>setCurrentTransaction(prev => ({ ...prev, amount: e.target.value }))}
+            onChange={(event) => setCurrentTransaction(prev => ({ ...prev, amount: event.target.value }))}
           />
-          <TextField select label="Kategori" value={currentTransaction?.categoryId || ""} 
-            onChange={e=>setCurrentTransaction(prev => ({ ...prev, categoryId: e.target.value }))}>
-            {categories.map(cat => <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>)}
+          <TextField
+            select
+            label="Kategori"
+            value={currentTransaction?.categoryId || ""}
+            onChange={(event) => setCurrentTransaction(prev => ({ ...prev, categoryId: event.target.value }))}
+          >
+            {categories.map(cat => (
+              <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+            ))}
           </TextField>
-          <TextField label="Not" value={currentTransaction?.note || ""} 
-            onChange={e=>setCurrentTransaction(prev => ({ ...prev, note: e.target.value }))} />
+          <TextField
+            label="Not"
+            value={currentTransaction?.note || ""}
+            onChange={(event) => setCurrentTransaction(prev => ({ ...prev, note: event.target.value }))}
+          />
           <TextField
             label="Tarih"
             type="datetime-local"
-            value={currentTransaction ? currentTransaction.date?.slice(0,16) : ""}
-            onChange={e=>setCurrentTransaction(prev => ({ ...prev, date: e.target.value }))}
+            value={currentTransaction?.date?.slice(0,16) || ""}
+            onChange={(event) => setCurrentTransaction(prev => ({ ...prev, date: event.target.value }))}
             InputLabelProps={{ shrink:true }}
           />
-          <TextField select label="Tür" value={currentTransaction?.isIncome || true} 
-            onChange={e=>setCurrentTransaction(prev => ({ ...prev, isIncome: e.target.value==="true" }))}>
+          <TextField
+            select
+            label="Tür"
+            value={currentTransaction?.isIncome || true}
+            onChange={(event) => setCurrentTransaction(prev => ({ ...prev, isIncome: event.target.value === "true" }))}
+          >
             <MenuItem value={true}>Gelir</MenuItem>
             <MenuItem value={false}>Gider</MenuItem>
           </TextField>
@@ -174,3 +207,4 @@ export default function TransactionsPage() {
     </Box>
   );
 }
+
