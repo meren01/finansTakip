@@ -1,21 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// useNavigate'i import etmeye gerek kalmayacak, çünkü artık yönlendirme işlemi App.jsx'te yapılıyor.
 import api from "../services/api";
-import {
-  Button,
-  TextField,
-  Typography,
-  Box,
-  Paper,
-  Alert,
-  Container,
-} from "@mui/material";
+import { Button, TextField, Typography, Box, Paper, Alert, Container } from "@mui/material";
 
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,18 +14,24 @@ const LoginPage = ({ onLogin }) => {
 
     try {
       const res = await api.post("/Auth/login", { email, password });
-      console.log("Login response:", res.data);
+      const token = res.data?.token;
 
-      if (res.data.token) {
-        sessionStorage.setItem("token", res.data.token); // sessionStorage kullan
-        onLogin(); // parent state'i güncelle
-        navigate("/dashboard", { replace: true });
-      } else {
-        setError("Token alınamadı.");
+      if (!token) {
+        setError("Giriş başarısız: Token alınamadı.");
+        return;
       }
+
+      // Başarılı token'ı App.jsx'teki onLogin fonksiyonuna gönderiyoruz.
+      // Bu çağrı, App.jsx'teki isAuthenticated ve user state'lerini güncelleyecek.
+      onLogin(token); 
+
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Giriş başarısız oldu.");
+      const message =
+        err.response?.data?.message ||
+        JSON.stringify(err.response?.data) ||
+        "Giriş başarısız oldu.";
+      setError(message);
     }
   };
 
@@ -47,7 +44,11 @@ const LoginPage = ({ onLogin }) => {
         <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
           Giriş Yap
         </Typography>
-        {error && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"

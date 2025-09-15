@@ -1,12 +1,10 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-export default function ProtectedRoute({ children }) {
-  const token = sessionStorage.getItem("token"); // her sayfa yüklenişinde kontrol
-
-  if (!token) {
-    return <Navigate to="/login" replace />; // token yoksa login sayfasına
-  }
-
+const ProtectedRoute = ({ isAuthenticated, isAdminRoute = false, isAdmin, children }) => {
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (isAdminRoute && !isAdmin) return <Navigate to="/dashboard" replace />;
   return children;
-}
+};
+
+export default ProtectedRoute;
