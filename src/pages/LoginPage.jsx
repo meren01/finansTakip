@@ -1,7 +1,15 @@
 import React, { useState } from "react";
-// useNavigate'i import etmeye gerek kalmayacak, çünkü artık yönlendirme işlemi App.jsx'te yapılıyor.
+import { Link } from "react-router-dom";
 import api from "../services/api";
-import { Button, TextField, Typography, Box, Paper, Alert, Container } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Typography,
+  Box,
+  Paper,
+  Alert,
+  Container,
+} from "@mui/material";
 
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState("");
@@ -21,10 +29,7 @@ const LoginPage = ({ onLogin }) => {
         return;
       }
 
-      // Başarılı token'ı App.jsx'teki onLogin fonksiyonuna gönderiyoruz.
-      // Bu çağrı, App.jsx'teki isAuthenticated ve user state'lerini güncelleyecek.
-      onLogin(token); 
-
+      onLogin(token);
     } catch (err) {
       console.error(err);
       const message =
@@ -39,16 +44,24 @@ const LoginPage = ({ onLogin }) => {
     <Container component="main" maxWidth="xs">
       <Paper
         elevation={3}
-        sx={{ padding: 4, display: "flex", flexDirection: "column", alignItems: "center", mt: 8 }}
+        sx={{
+          padding: 4,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          mt: 8,
+        }}
       >
         <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
           Giriş Yap
         </Typography>
+
         {error && (
           <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
             {error}
           </Alert>
         )}
+
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"
@@ -70,9 +83,22 @@ const LoginPage = ({ onLogin }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+          >
             Giriş Yap
           </Button>
+
+          {/* Burada "Hesabın yok mu? Kayıt ol" linki eklendi */}
+          <Typography variant="body2" align="center">
+            Hesabın yok mu?{" "}
+            <Link to="/register" style={{ textDecoration: "none", color: "#1976d2", fontWeight: 500 }}>
+              Kayıt ol
+            </Link>
+          </Typography>
         </Box>
       </Paper>
     </Container>

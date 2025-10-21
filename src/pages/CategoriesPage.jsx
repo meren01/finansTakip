@@ -8,7 +8,12 @@ import {
   List,
   ListItem,
   ListItemText,
-  IconButton
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from "@mui/material";
 import { Delete, Edit, Save, Close } from "@mui/icons-material";
 import api from "../services/api";
@@ -18,6 +23,8 @@ export default function CategoriesPage() {
   const [name, setName] = useState("");
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState("");
+  const [deleteId, setDeleteId] = useState(null); // Silinecek kategori id’si
+  const [openDialog, setOpenDialog] = useState(false); // Pop-up kontrolü
 
   const fetchCategories = async () => {
     try {
@@ -32,7 +39,6 @@ export default function CategoriesPage() {
     if (!name.trim()) return;
     try {
       const res = await api.post("/categories", { name });
-      // State'i direkt güncelle
       setCategories(prev => [...prev, res.data]);
       setName("");
     } catch (err) {
@@ -40,13 +46,20 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Silmek istediğinize emin misiniz?")) return;
+  const handleDeleteConfirm = (id) => {
+    setDeleteId(id);
+    setOpenDialog(true); // Pop-up aç
+  };
+
+  const handleDelete = async () => {
     try {
-      await api.delete(`/categories/${id}`);
-      setCategories(prev => prev.filter(cat => cat.id !== id));
+      await api.delete(`/categories/${deleteId}`);
+      setCategories(prev => prev.filter(cat => cat.id !== deleteId));
     } catch (err) {
       console.error("Kategori silinirken hata:", err);
+    } finally {
+      setOpenDialog(false); // Pop-up kapat
+      setDeleteId(null);
     }
   };
 
@@ -98,7 +111,7 @@ export default function CategoriesPage() {
                 ) : (
                   <>
                     <IconButton edge="end" color="primary" onClick={() => handleEditStart(cat)}><Edit /></IconButton>
-                    <IconButton edge="end" color="error" onClick={() => handleDelete(cat.id)}><Delete /></IconButton>
+                    <IconButton edge="end" color="error" onClick={() => handleDeleteConfirm(cat.id)}><Delete /></IconButton>
                   </>
                 )
               }
@@ -112,7 +125,28 @@ export default function CategoriesPage() {
           ))}
         </List>
       </Paper>
+
+      {/* Silme onay pop-up'ı */}
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      >
+        <DialogTitle>Kategori Silme Onayı</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Seçtiğiniz kategoriye ait <strong>tüm veriler geri döndürülemez şekilde silinecektir.</strong><br />
+            Bu işlemi yapmak istediğinizden emin misiniz?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)} color="primary">
+            Vazgeç
+          </Button>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Evet, Sil
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
-

@@ -7,33 +7,15 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import {
-  ArrowUpward,
-  ArrowDownward,
-  AccountBalance,
-} from "@mui/icons-material";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { ArrowUpward, ArrowDownward, AccountBalance } from "@mui/icons-material";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import api from "../services/api";
 
 // Renk paleti
 const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#A569BD",
-  "#E74C3C",
-  "#FF69B4",
-  "#CD853F",
-  "#7FFF00",
-  "#1E90FF",
+  "#0088FE", "#00C49F", "#FFBB28", "#FF8042",
+  "#A569BD", "#E74C3C", "#FF69B4", "#CD853F",
+  "#7FFF00", "#1E90FF",
 ];
 
 const DashboardPage = () => {
@@ -44,6 +26,10 @@ const DashboardPage = () => {
   const [expenseData, setExpenseData] = useState([]);
   const [maxIncomeCategory, setMaxIncomeCategory] = useState(null);
   const [maxExpenseCategory, setMaxExpenseCategory] = useState(null);
+
+  // Binlik ayırıcı için formatlayıcı
+  const formatCurrency = (num) =>
+    new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
 
   // Özet verileri çek
   useEffect(() => {
@@ -96,22 +82,28 @@ const DashboardPage = () => {
     fetchCategorySummary();
   }, []);
 
+  // Dinamik kart renkleri
+  const balanceBg =
+    totalBalance >= 0
+      ? "linear-gradient(135deg, #66bb6a, #43a047)" // Yeşil
+      : "linear-gradient(135deg, #ef5350, #e53935)"; // Kırmızı
+
   const cardData = [
     {
       title: "Toplam Bakiye",
-      value: `$${totalBalance.toFixed(2)}`,
+      value: `$${formatCurrency(totalBalance)}`,
       icon: <AccountBalance sx={{ fontSize: 40, color: "#fff" }} />,
-      bg: "linear-gradient(135deg, #42a5f5, #478ed1)",
+      bg: balanceBg,
     },
     {
       title: "Toplam Gelir",
-      value: `$${totalIncome.toFixed(2)}`,
+      value: `$${formatCurrency(totalIncome)}`,
       icon: <ArrowUpward sx={{ fontSize: 40, color: "#fff" }} />,
       bg: "linear-gradient(135deg, #66bb6a, #43a047)",
     },
     {
       title: "Toplam Gider",
-      value: `$${totalExpense.toFixed(2)}`,
+      value: `$${formatCurrency(totalExpense)}`,
       icon: <ArrowDownward sx={{ fontSize: 40, color: "#fff" }} />,
       bg: "linear-gradient(135deg, #ef5350, #e53935)",
     },
@@ -153,8 +145,9 @@ const DashboardPage = () => {
         ))}
       </Grid>
 
-      {/* PieChart */}
+      {/* Gelir ve Gider PieChart */}
       <Grid container spacing={3} sx={{ mt: 3 }}>
+        {/* Gelir */}
         <Grid item xs={12} md={6}>
           <Card sx={{ borderRadius: 3, boxShadow: 2, p: 2 }}>
             <Typography variant="h6" gutterBottom>Gelir Dağılımı</Typography>
@@ -168,13 +161,12 @@ const DashboardPage = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label={(entry) => `${entry.CategoryName} (${entry.Total})`}
                   >
                     {incomeData.map((entry, index) => (
                       <Cell key={`inc-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `$${value}`} />
+                  <Tooltip formatter={(value) => `$${formatCurrency(value)}`} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -183,12 +175,13 @@ const DashboardPage = () => {
             )}
             {maxIncomeCategory && (
               <Typography sx={{ mt: 1 }}>
-                En yüksek gelir: {maxIncomeCategory.CategoryName} (${maxIncomeCategory.Total})
+                En yüksek gelir: {maxIncomeCategory.CategoryName} (${formatCurrency(maxIncomeCategory.Total)})
               </Typography>
             )}
           </Card>
         </Grid>
 
+        {/* Gider */}
         <Grid item xs={12} md={6}>
           <Card sx={{ borderRadius: 3, boxShadow: 2, p: 2 }}>
             <Typography variant="h6" gutterBottom>Gider Dağılımı</Typography>
@@ -202,13 +195,12 @@ const DashboardPage = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label={(entry) => `${entry.CategoryName} (${entry.Total})`}
                   >
                     {expenseData.map((entry, index) => (
                       <Cell key={`exp-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `$${value}`} />
+                  <Tooltip formatter={(value) => `$${formatCurrency(value)}`} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -217,7 +209,7 @@ const DashboardPage = () => {
             )}
             {maxExpenseCategory && (
               <Typography sx={{ mt: 1 }}>
-                En yüksek gider: {maxExpenseCategory.CategoryName} (${maxExpenseCategory.Total})
+                En yüksek gider: {maxExpenseCategory.CategoryName} (${formatCurrency(maxExpenseCategory.Total)})
               </Typography>
             )}
           </Card>
@@ -228,3 +220,4 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+

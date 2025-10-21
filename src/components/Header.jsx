@@ -15,32 +15,91 @@ const Header = ({ isAuthenticated, isAdmin = false, onLogout }) => {
   };
 
   return (
-    <AppBar position="static">
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-            Gelir-Gider Takip
-          </Link>
+    <AppBar
+      position="static"
+      sx={{
+        background: "linear-gradient(90deg, #153e75 0%, #3a5ca8 50%, #6a8dd9 100%)",
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.35)",
+        borderBottom: "1px solid rgba(255,255,255,0.25)",
+      }}
+    >
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        {/* Sol taraf (Logo) */}
+        <Typography
+          variant="h6"
+          component={Link}
+          to="/"
+          sx={{
+            textDecoration: "none",
+            color: "white",
+            fontWeight: 600,
+            letterSpacing: 0.8,
+            textShadow: "0 0 6px rgba(255,255,255,0.3)",
+            "&:hover": { color: "#a7c7ff", transition: "0.3s" },
+          }}
+        >
+          Gelir-Gider Takip
         </Typography>
-        <Box>
-          {isAuthenticated ? (
-            <>
-              <Button color="inherit" component={Link} to="/dashboard">Dashboard</Button>
-              <Button color="inherit" component={Link} to="/categories">Kategoriler</Button>
-              <Button color="inherit" component={Link} to="/transactions">İşlemler</Button>
-              {isAdmin && <Button color="inherit" component={Link} to="/admin">Admin Panel</Button>}
-              <Button color="inherit" onClick={handleLogoutClick}>Çıkış Yap</Button>
-            </>
-          ) : (
-            <>
-              <Button color="inherit" component={Link} to="/login">Giriş Yap</Button>
-              <Button color="inherit" component={Link} to="/register">Kayıt Ol</Button>
-            </>
-          )}
-        </Box>
+
+        {/* Sağ taraf (Menü) */}
+        {isAuthenticated && (
+          <Box sx={{ display: "flex", gap: 2 }}>
+            {[
+              { to: "/dashboard", label: "Dashboard" },
+              { to: "/categories", label: "Kategoriler" },
+              { to: "/transactions", label: "İşlemler" },
+              ...(isAdmin ? [{ to: "/admin", label: "Admin Panel" }] : []),
+            ].map((btn) => (
+              <Button
+                key={btn.to}
+                component={Link}
+                to={btn.to}
+                sx={{
+                  color: "#fff",
+                  background: "linear-gradient(90deg, #3a4ca8, #2e3d8c)",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderRadius: "20px",
+                  px: 2.5,
+                  boxShadow: "0 0 6px rgba(100, 130, 180, 0.3)",
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #4a5cb8, #3848a0)",
+                    transform: "scale(1.03)",
+                    transition: "all 0.25s ease",
+                    boxShadow: "0 0 10px rgba(120, 150, 200, 0.4)",
+                  },
+                }}
+              >
+                {btn.label}
+              </Button>
+            ))}
+
+            <Button
+              onClick={handleLogoutClick}
+              sx={{
+                color: "#fff",
+                background: "linear-gradient(90deg, #3a4ca8, #2e3d8c)",
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: "20px",
+                px: 2.5,
+                boxShadow: "0 0 6px rgba(100, 130, 180, 0.3)",
+                "&:hover": {
+                  background: "linear-gradient(90deg, #4a5cb8, #3848a0)",
+                  transform: "scale(1.03)",
+                  transition: "all 0.25s ease",
+                  boxShadow: "0 0 10px rgba(120, 150, 200, 0.4)",
+                },
+              }}
+            >
+              Çıkış Yap
+            </Button>
+          </Box>
+        )}
       </Toolbar>
     </AppBar>
   );
 };
 
-export default Header;  
+export default Header;
+
